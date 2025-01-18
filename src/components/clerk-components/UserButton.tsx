@@ -81,8 +81,8 @@ const UserButton = () => {
 					</form>
 					<div className='h-72 flex flex-col overflow-y-auto'>
 						{
-							tokens.map((tokenItem) => {
-								return <div className='text-white flex justify-between py-4 border-b border-white/5'>
+							tokens.map((tokenItem, index) => {
+								return <div key={index} className='text-white flex justify-between py-4 border-b border-white/5'>
 									<div className='flex gap-3'>
 										<Key className='text-gray-600' size={20} />
 										<p>{tokenItem.title}</p>
