@@ -1,8 +1,7 @@
 "use client";
 
 import { TagsDropdown } from '@/components/ui/tags_dropdown'
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { TagsFilter } from '@/components/ui/tag_filter'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import React, { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation';
 import Spinner from '@/components/spinner';
@@ -340,7 +339,7 @@ const Boards = () => {
 			<section className='custom-cursor min-h-screen min-w-screen bg-primary relative'>
 				<nav className="flex justify-between items-center py-8 px-32 relative z-[1]">
 					<div className='w-10'>
-						<img src="https://next-images.opencollective.com/_next/image?url=%2Fstatic%2Fimages%2Foc-logo-watercolor-256.png&w=32&q=75" alt="" />
+						<img src="/logo.svg" alt="" />
 					</div>
 					<UserButton />
 				</nav>

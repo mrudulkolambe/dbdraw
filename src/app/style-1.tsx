@@ -25,7 +25,7 @@ export default function Home() {
         <div className="relative z-1 max-w-screen  min-h-screen overflow-x-hidden">
           {/* <div className="gradient-bg h-screen w-screen"></div> */}
           <nav className="flex items-center justify-between px-20 py-6 h-[80px]">
-            <h1 className="w-[100px] text-2xl font-bold text-white">DrawDB</h1>
+            <h1 className="w-[100px] text-2xl font-bold text-white">DBDraw</h1>
             <ul className="flex items-center gap-12 text-white/80">
               <li>Templates</li>
               <li>GitHub</li>

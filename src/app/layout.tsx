@@ -9,7 +9,7 @@ const poppins = Poppins({ subsets: ["latin"], weight: ["100", "200", "300", "400
 
 
 export const metadata: Metadata = {
-  title: "Node DB",
+  title: "DBDraw",
   description: "Build schemas in minutes",
 };
 
@@ -20,6 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/logo.svg" sizes="any" />
+      </head>,
       <ClerkProvider appearance={{
         baseTheme: dark,
         variables: {

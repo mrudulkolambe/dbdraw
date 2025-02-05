@@ -29,14 +29,14 @@ const Home = () => {
 				</div>
 
 				<nav className="relative flex items-center justify-between px-20 py-6 h-[80px] z-10 bg-transparent">
-					<h1 className="w-[100px] text-2xl font-bold text-white">DrawDB</h1>
+					<h1 className="w-[100px] text-2xl font-bold text-white">DBDraw</h1>
 					<ul className="flex items-center gap-12 text-white/80">
 						<li>Templates</li>
-						<li>GitHub</li>
+						<li><a href="https://github.com/mrudulkolambe/dbdraw" target='_blank'>GitHub</a></li>
 					</ul>
 					<div className="w-[100px] flex justify-end">{user.isSignedIn ? <UserButton /> : <SignInButton mode="modal" ><button className="bg-blue-600 px-6 py-3 text-white text-sm rounded-md">Sign In</button></SignInButton>}</div>
 				</nav>
-				<section className="relative z-10 flex items-center max-w-screen h-screen">
+				<section className="relative z-10 flex items-center max-w-screen main-panel">
 					<div className="flex items-center justify-around flex-col w-full">
 						<h1 className="text-center font-bold text-7xl text-white leading-[4.5rem]">Sketch Your Database,<br />Build Your Backend Faster</h1>
 						<p className="mt-8 w-2/5 text-center text-white/60 font-normal">Welcome to the future of schema building! Our intuitive no-code platform empowers you to design, visualize, and customize your database schemas effortlessly.</p>

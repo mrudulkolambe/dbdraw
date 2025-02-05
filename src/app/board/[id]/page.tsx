@@ -11,7 +11,7 @@ import RightSidebar from '@/components/RightSidebar';
 import { v4 as uuidv4 } from 'uuid';
 import { useParams } from 'next/navigation';
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger } from '@/components/ui/menubar';
-import { ArrowBigDownDash, ArrowBigDownDashIcon, Check, FileDown } from 'lucide-react';
+import {Check, FileDown } from 'lucide-react';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Link from 'next/link';
 import axios, { CancelTokenSource } from 'axios';
@@ -23,13 +23,10 @@ import { useRouter } from 'next/navigation'
 import { saveAs } from 'file-saver';
 import { useDropzone } from 'react-dropzone';
 import { twMerge } from 'tailwind-merge';
-import ContextMenu from '@/components/context-menu/menu';
 import UserButton from '@/components/clerk-components/UserButton';
 import { TagsDropdown } from '@/components/ui/tags_dropdown';
 import Tags from '@/lib/model/tags.model';
 import { NotesNodeType } from '@/components/nodes/NotesNode';
-import fs from 'fs'
-import { CollectionNode } from '@/components/Collection';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 
 const initialNodes: NodeType[] = [] satisfies Node[];
@@ -215,7 +212,7 @@ export default function App() {
     if (response.ok) {
       const data = await response.json();
       setTitle(data.draw.title)
-      window.document.title = `DrawDB | ${data.draw.title}`;
+      window.document.title = `DBDraw | ${data.draw.title}`;
       setDescription(data.draw.description)
       setEdges(data.draw.flow.edges?.map((edge: any) => {
         return {
@@ -850,7 +847,7 @@ ${genertatedSchema}
           <nav className='gap-0 h-[80px] w-screen flex items-center bg-secondary border-b-white/30 justify-between'>
             <form className='flex gap-3 items-center w-1/5  px-8'>
               <div className='w-10'>
-                <img src="https://next-images.opencollective.com/_next/image?url=%2Fstatic%2Fimages%2Foc-logo-watercolor-256.png&w=32&q=75" alt="" />
+                <img src="/logo.svg" alt="" />
               </div>
               <div className='flex flex-col text-white'>
                 <Menubar className='py-0'>
