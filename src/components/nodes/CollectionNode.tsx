@@ -8,6 +8,7 @@ import { twMerge } from "tailwind-merge";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../ui/node-context-menu";
 import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import { NodeType } from ".";
 
 export type CollectionNodeData = {
   label?: string;
@@ -16,6 +17,7 @@ export type CollectionNodeData = {
   onRename: (id: string) => void;
   onDuplicate: (node: CollectionNodeData) => void;
   onDelete: (id: string) => void;
+  onFieldDelete: (collection: string, field: string) => void;
   addNote: (title: string, description: string, collection?: string) => void;
   tableWidth: number
 };
@@ -120,7 +122,9 @@ export default function CollectionNode({
                       <div className="text-white/60 h-8 w-8 bg-white/5 rounded-lg text-[10px] font-bold flex items-center justify-center">{field.type === "string" ? "Abc" : field.type == "primary" ? "Key" : field.type === "number" ? "123" : field.type === "boolean" ? "True" : field.type === "date" ? "Date" : "Ref "}</div>
                       <span className="custom-drag-handle font-normal ">{field.name}</span>
                     </div>
-                    <div className="duration-300 pointer-events-none opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto h-7 w-7 font-bold flex items-center justify-center"><Trash2 className="text-white/50" height={16} width={16} /></div>
+                    <div className="duration-300 pointer-events-none opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto h-7 w-7 font-bold flex items-center justify-center"><Trash2 onClick={() => {
+                      data.onFieldDelete(id, field.id)
+                    }} className="text-white/50" height={16} width={16} /></div>
                     {/* <p className="uppercase font-semibold flex gap-1 items-center">
                       {field.type == "primary" && <KeyRound className="h-3 w-3" />}
                       {field.type == "primary" ? "KEY" : field.type}

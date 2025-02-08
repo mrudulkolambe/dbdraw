@@ -228,6 +228,7 @@ export default function App() {
             // @ts-ignore
             data: {
               ...node.data,
+              onFieldDelete: deleteFieldAlt,
               onClick: setSelectedCollection,
               onDuplicate: handleNodeDuplicate,
               onRename: (id: string) => setNodeRenameDialogOpen({ show: true, id }),
@@ -436,6 +437,7 @@ export default function App() {
     const newNode: CollectionNodeType = {
       id: uuidv4(),
       data: {
+        onFieldDelete: deleteFieldAlt,
         label: name,
         fields: fields,
         onClick: setSelectedCollection,
@@ -450,6 +452,7 @@ export default function App() {
     }
     console.log(newNode)
     setNodes((nds) => nds.concat(newNode));
+    setNodesLocal((nds) => nds.concat(newNode))
     setSelectedCollection("")
   };
 
@@ -486,11 +489,20 @@ export default function App() {
       }
     })
     setNodes(newNodes as NodeType[]);
+    setNodesLocal(newNodes as NodeType[])
   };
 
+  const deleteFieldAlt = (collection: string, field: string) => {
+    console.log(collection, field)
+    console.log(nodes)
+  }
   const deleteField = (collectionId: string, fieldId: string) => {
-    let updatedNodes = nodesLocal.map((node) => {
+    console.log(nodesLocal);
+    let updateNodesData = [...nodes]
+    let updatedNodes = updateNodesData.map((node) => {
+      console.log(node)
       if (node.type === "collection" && node.id === collectionId) {
+        console.log(node, "if matched")
         return {
           ...node,
           data: {
@@ -500,10 +512,13 @@ export default function App() {
           },
         };
       } else {
+        console.log(node, "else matched")
         return node;
       }
     })
-    setNodes(updatedNodes as NodeType[]);
+    console.log(updatedNodes);
+    // setNodesLocal(updatedNodes as NodeType[])
+    // setNodes(updatedNodes as NodeType[]);
   };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -844,11 +859,8 @@ ${genertatedSchema}
             <Spinner />
             <h2 className='text-lg'>Loading...</h2>
           </div>}
-          <nav className='gap-0 h-[80px] w-screen flex items-center bg-secondary border-b-white/30 justify-between'>
-            <form className='flex gap-3 items-center w-1/5  px-8'>
-              <div className='w-10'>
-                <img src="/logo.svg" alt="" />
-              </div>
+          <nav className='gap-0 min-h-[80px] h-[80px] w-screen flex  px-8 items-center bg-secondary border-b-white/30 justify-between'>
+            <form className='flex gap-3 items-center w-1/5'>
               <div className='flex flex-col text-white'>
                 <Menubar className='py-0'>
                   <MenubarMenu>
@@ -1043,7 +1055,7 @@ ${genertatedSchema}
                 {showSidebar && <RightSidebar
                   collection={nodes.find((col) => col.id === selectedCollection) as CollectionNodeType}
                   onUpsertField={upsertField}
-                  onDeleteField={deleteField}
+                  onDeleteField={deleteFieldAlt}
                   selectedField={selectedField}
                   setSelectedField={setSelectedField}
                 />}

@@ -22,7 +22,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="icon" href="/logo.svg" sizes="any" />
-      </head>,
+      </head>
       <ClerkProvider appearance={{
         baseTheme: dark,
         variables: {
