@@ -17,7 +17,7 @@ export type CollectionNodeData = {
   onRename: (id: string) => void;
   onDuplicate: (node: CollectionNodeData) => void;
   onDelete: (id: string) => void;
-  onFieldDelete: (collection: string, field: string) => void;
+  onFieldDelete: (collection: string, fieldId: string) => void;
   addNote: (title: string, description: string, collection?: string) => void;
   tableWidth: number
 };
@@ -77,10 +77,10 @@ export default function CollectionNode({
       <ContextMenu>
         <ContextMenuTrigger>
           <ContextMenuContent className="border-white/5 bg-secondary">
-            <ContextMenuItem onClick={() => data.onRename(id)} className="text-xs hover:bg-white/5 px-3 py-2">Rename</ContextMenuItem>
+            {/* <ContextMenuItem onClick={() => data.onRename(id)} className="text-xs hover:bg-white/5 px-3 py-2">Rename</ContextMenuItem> */}
             <ContextMenuItem onClick={() => data.onDuplicate(data)} className="text-xs hover:bg-white/5 px-3 py-2">Duplicate</ContextMenuItem>
             <ContextMenuItem onClick={() => data.onDelete(id)} className="text-xs hover:bg-white/5 px-3 py-2">Delete</ContextMenuItem>
-            <ContextMenuItem onClick={() => setShowNote(true)} className="hover:bg-white/10 px-3 py-2">Add note</ContextMenuItem>
+            {/* <ContextMenuItem onClick={() => setShowNote(true)} className="hover:bg-white/10 px-3 py-2">Add note</ContextMenuItem> */}
           </ContextMenuContent>
           <Handle
             type="target"
@@ -122,14 +122,15 @@ export default function CollectionNode({
                       <div className="text-white/60 h-8 w-8 bg-white/5 rounded-lg text-[10px] font-bold flex items-center justify-center">{field.type === "string" ? "Abc" : field.type == "primary" ? "Key" : field.type === "number" ? "123" : field.type === "boolean" ? "True" : field.type === "date" ? "Date" : "Ref "}</div>
                       <span className="custom-drag-handle font-normal ">{field.name}</span>
                     </div>
-                    <div className="duration-300 pointer-events-none opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto h-7 w-7 font-bold flex items-center justify-center"><Trash2 onClick={() => {
-                      data.onFieldDelete(id, field.id)
-                    }} className="text-white/50" height={16} width={16} /></div>
-                    {/* <p className="uppercase font-semibold flex gap-1 items-center">
-                      {field.type == "primary" && <KeyRound className="h-3 w-3" />}
-                      {field.type == "primary" ? "KEY" : field.type}
-                      {field.list ? " [ ]" : ""}
-                    </p> */}
+                    {/* <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        data.onFieldDelete(id, field.id);
+                      }}
+                      className="duration-300 opacity-0 group-hover:opacity-100 h-7 w-7 hover:bg-white/10 rounded-md flex items-center justify-center"
+                    >
+                      <Trash2 className="text-white/50" height={16} width={16} />
+                    </button> */}
                   </span>
                   {field.type === "ref" && (
                     <Handle

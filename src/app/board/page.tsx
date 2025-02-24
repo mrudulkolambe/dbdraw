@@ -87,9 +87,12 @@ const Boards = () => {
 		setLoading(true);
 		let body;
 		if (imported) {
-			body = importedData
+			body = importedData;
 		} else {
-			body = { ...drawForm, tag: pickedTag }
+			body = { 
+				...drawForm, 
+				tag: pickedTag || "" 
+			};
 		}
 		const response = await fetch('/api/diagram', {
 			method: 'POST',
@@ -101,10 +104,15 @@ const Boards = () => {
 
 		const data = await response.json();
 		if (response.ok) {
-			setLoading(false)
-			router.push(`/board/${data._id}`)
+			setLoading(false);
+			setDrawForm(drawInit); 
+			setPickedTag(""); 
+			setImported(false); 
+			setImportedFileContent(undefined); 
+			router.push(`/board/${data._id}`);
 		} else {
-			setLoading(false)
+			setLoading(false);
+			toast.error('Error creating diagram');
 			console.error('Error creating diagram:', data.message);
 		}
 	}
@@ -188,7 +196,10 @@ const Boards = () => {
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify({ ...dataObject, tag: pickedTag }),
+			body: JSON.stringify({ 
+				...dataObject, 
+				tag: pickedTag || "" // Ensure tag is never undefined
+			}),
 		}).then(async (response) => {
 			const res = await response.json();
 
@@ -197,7 +208,7 @@ const Boards = () => {
 					if (diagram._id === id) {
 						return {
 							...res.draw,
-							tag: pickedTag,
+							tag: res.draw.tag || "", // Ensure tag is never undefined in state
 							description: res.draw.description,
 							deleted: res.draw.deleted,
 							favourite: res.draw.favourite,
@@ -208,11 +219,16 @@ const Boards = () => {
 					}
 				});
 
-				setLoading(false)
-				setRenameDialog(false)
+				setLoading(false);
+				setRenameDialog(false);
 				setDiagrams(newArr);
-				handleFilter(activeTab, newArr)
-				return res
+				handleFilter(activeTab, newArr);
+				
+				// Reset form and tag after successful update
+				setDrawForm(drawInit);
+				setPickedTag("");
+				
+				return res;
 			} else {
 				throw new Error(res.message);
 			}
@@ -232,36 +248,54 @@ const Boards = () => {
 	};
 
 	const handleFilter = (activeTab: any, diagrams: Diagram[]) => {
+		if (!diagrams) return; 
+
+		let filtered: Diagram[];
+		
 		switch (activeTab.ref) {
 			case 'my-diagram':
-				setFilteredDiagrams(diagrams.filter((diagram: Diagram) => {
-					return !diagram.archived && !diagram.deleted
-				}))
+				filtered = diagrams.filter((diagram: Diagram) => {
+					return !diagram.archived && !diagram.deleted;
+				});
 				break;
 			case 'favourite':
-				setFilteredDiagrams(diagrams.filter((diagram: Diagram) => {
+				filtered = diagrams.filter((diagram: Diagram) => {
 					return !diagram.archived && !diagram.deleted && diagram.favourite;
-				}))
+				});
 				break;
 			case 'archived':
-				let data = diagrams.filter((diagram: Diagram) => {
+				filtered = diagrams.filter((diagram: Diagram) => {
 					return diagram.archived && !diagram.deleted;
-				})
-				setFilteredDiagrams(data);
+				});
 				break;
 			case 'trash':
-				setFilteredDiagrams(diagrams.filter((diagram: Diagram) => {
+				filtered = diagrams.filter((diagram: Diagram) => {
 					return diagram.deleted;
-				}))
+				});
 				break;
-
 			default:
-				setFilteredDiagrams(diagrams.filter((diagram: Diagram) => {
+				// For tag filtering
+				filtered = diagrams.filter((diagram: Diagram) => {
 					return !diagram.archived && !diagram.deleted && diagram.tag === activeTab.ref;
-				}))
+				});
 				break;
 		}
+
+		setFilteredDiagrams(filtered);
 	}
+
+	useEffect(() => {
+		if (filterTag !== "") {
+			handleFilter({
+				ref: filterTag,
+				label: tags.find(t => t._id === filterTag)?.title || filterTag
+			}, diagrams);
+		} else {
+			// Reset to default view when no tag is selected
+			handleFilter(activeTab, diagrams);
+		}
+	}, [filterTag, diagrams])
+
 
 	const handleDrawForm = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {
 		setDrawForm({
