@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   const user = await currentUser();
   if (user) {
     const request = await req.json();
-    console.log(request.tag)
+    console.log(request.flow)
     const drawInit = new Diagrams({
       user: user.id,
       title: request.title,
