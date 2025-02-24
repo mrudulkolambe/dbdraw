@@ -1245,7 +1245,7 @@ export const ${pascalCaseCollectionName}${modelType ? `: ${modelType}` : ''} = m
           </ReactFlow>
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-10">
             <h2 className="text-2xl font-bold text-white mb-4">Oops! This diagram is lost in space</h2>
-            <p className="text-gray-400 mb-8">Don't worry though, you can create a new one or return to your dashboard</p>
+            <p className="text-gray-400 mb-8">Don&apos;t worry though, you can create a new one or return to your dashboard</p>
             <div className="space-x-4">
               <Link href="/board" className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
                 <ArrowLeft className="w-4 h-4 mr-2" />
