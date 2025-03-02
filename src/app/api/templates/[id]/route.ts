@@ -1,6 +1,4 @@
-// src/app/api/diagram/route.ts
-
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import Diagrams from '@/lib/model/draw.model';
 import { currentUser } from "@clerk/nextjs/server";
 import { connect } from '@/lib/db';
@@ -17,7 +15,7 @@ export async function POST(req: Request) {
       tag: request.tag,
       flow: request.flow,
       description: request.description,
-      icon: request.icon,
+      isTemplate: true,
     });
 
     const savedDraw = await drawInit.save();
@@ -27,17 +25,16 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = params;
   await connect();
   const user = await currentUser();
   if (user) {
-    const diagrams = await Diagrams.find({
-      user: user.id
-    }).populate({
-      path: 'tag',
-      select: 'title _id'
-    });
-    return NextResponse.json({ diagrams, success: true });
+    const diagram = await Diagrams.findOne({
+      isTemplate: true,
+      _id: id,
+    })
+    return NextResponse.json({ diagram, success: true });
   } else {
     return NextResponse.json({ message: 'User not authenticated' });
   }
