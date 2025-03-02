@@ -1,5 +1,6 @@
 import { Field } from '@/components/nodes/CollectionNode';
 import mongoose, { Model, model, models, Schema } from 'mongoose';
+
 export interface Flow {
 	nodes: any[];
 	edges: any[];
@@ -14,14 +15,20 @@ interface Diagram {
 	_id: string;
 	user: string;
 	title: string;
-	tag: string;
+	tag: {
+		_id: string;
+		title: string;
+	};
+	description?: string;
 	flow: Flow;
 	archived: boolean;
 	createdAt: number;
 	favourite: boolean;
 	deleted: boolean;
-	description: string
+	isTemplate: boolean;
+	icon: string;
 }
+
 interface Collection {
 	collectionName: string;
 	data: {
@@ -37,12 +44,14 @@ const DRAW_SCHEMA = new Schema<DiagramDocument>({
 		required: true
 	},
 	tag: {
-		type: String,
+		type: Schema.Types.ObjectId,
 		ref: "Tags",
+		required: true
 	},
 	title: {
 		type: String,
-		default: "Untitled"
+		default: "Untitled",
+		required: true
 	},
 	flow: {
 		type: Map,
@@ -62,7 +71,7 @@ const DRAW_SCHEMA = new Schema<DiagramDocument>({
 	},
 	createdAt: {
 		type: Number,
-		default: Date.now()
+		default: Date.now
 	},
 	favourite: {
 		type: Boolean,
@@ -75,6 +84,14 @@ const DRAW_SCHEMA = new Schema<DiagramDocument>({
 	description: {
 		type: String,
 		default: ""
+	},
+	isTemplate: {
+		type: Boolean,
+		default: false
+	},
+	icon: {
+		type: String,
+		default: 'LuDatabase'
 	}
 })
 

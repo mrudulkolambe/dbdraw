@@ -14,6 +14,10 @@ import { toast } from 'sonner';
 import Tags from '@/lib/model/tags.model';
 import { useDropzone } from 'react-dropzone';
 import UserButton from '@/components/clerk-components/UserButton';
+import IconSelector from '@/components/IconSelector';
+import * as LucideIcons from 'lucide-react';
+import { LuAArrowDown } from 'react-icons/lu';
+import DynamicReactIcons from '@/components/DynamicIcons';
 
 const Boards = () => {
 	const tabs = [
@@ -42,6 +46,7 @@ const Boards = () => {
 		title: "",
 		description: "",
 		tag: "",
+		icon: "LuDatabase",
 		flow: {
 			nodes: [],
 			edges: [],
@@ -84,14 +89,22 @@ const Boards = () => {
 
 
 	const createDraw = async (imported: boolean, importedData?: object) => {
+		// Validate all required fields if not importing
+		if (!imported) {
+			if (!drawForm.title.trim() || !drawForm.description.trim() || !pickedTag) {
+				toast.error('Please fill all fields and select a tag');
+				return;
+			}
+		}
+		
 		setLoading(true);
 		let body;
 		if (imported) {
 			body = importedData;
 		} else {
-			body = { 
-				...drawForm, 
-				tag: pickedTag || "" 
+			body = {
+				...drawForm,
+				tag: pickedTag
 			};
 		}
 		const response = await fetch('/api/diagram', {
@@ -105,10 +118,10 @@ const Boards = () => {
 		const data = await response.json();
 		if (response.ok) {
 			setLoading(false);
-			setDrawForm(drawInit); 
-			setPickedTag(""); 
-			setImported(false); 
-			setImportedFileContent(undefined); 
+			setDrawForm(drawInit);
+			setPickedTag("");
+			setImported(false);
+			setImportedFileContent(undefined);
 			router.push(`/board/${data._id}`);
 		} else {
 			setLoading(false);
@@ -118,11 +131,16 @@ const Boards = () => {
 	}
 
 	const updateDraw = async (diagram: Diagram) => {
+		if (!drawForm.title.trim() || !drawForm.description.trim() || !pickedTag) {
+			toast.error('Please fill all fields and select a tag');
+			return;
+		}
 		setLoading(true);
 		const datamap = new Map();
 		datamap.set('title', drawForm.title)
 		datamap.set('description', drawForm.description)
-		datamap.set('tag', drawForm.tag)
+		datamap.set('tag', pickedTag)
+		datamap.set('icon', drawForm.icon)
 		await handleUpdates(diagram._id, datamap)
 	}
 
@@ -187,7 +205,7 @@ const Boards = () => {
 	const handleTrash = (id: string, data: Map<string, any>, permanent: boolean) => {
 		setConfirmDeleteDialog({ show: true, id, data, isPermanent: permanent })
 	}
-
+	const [value, setValue] = React.useState("FaUsers")
 	const handleUpdates = async (id: string, data: Map<string, any>) => {
 		const dataObject = Object.fromEntries(data);
 
@@ -196,8 +214,8 @@ const Boards = () => {
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify({ 
-				...dataObject, 
+			body: JSON.stringify({
+				...dataObject,
 				tag: pickedTag || "" // Ensure tag is never undefined
 			}),
 		}).then(async (response) => {
@@ -223,11 +241,11 @@ const Boards = () => {
 				setRenameDialog(false);
 				setDiagrams(newArr);
 				handleFilter(activeTab, newArr);
-				
+
 				// Reset form and tag after successful update
 				setDrawForm(drawInit);
 				setPickedTag("");
-				
+
 				return res;
 			} else {
 				throw new Error(res.message);
@@ -248,10 +266,10 @@ const Boards = () => {
 	};
 
 	const handleFilter = (activeTab: any, diagrams: Diagram[]) => {
-		if (!diagrams) return; 
+		if (!diagrams) return;
 
 		let filtered: Diagram[];
-		
+
 		switch (activeTab.ref) {
 			case 'my-diagram':
 				filtered = diagrams.filter((diagram: Diagram) => {
@@ -296,7 +314,6 @@ const Boards = () => {
 		}
 	}, [filterTag, diagrams])
 
-
 	const handleDrawForm = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {
 		setDrawForm({
 			...drawForm,
@@ -313,7 +330,7 @@ const Boards = () => {
 
 	const handleRename = (diagram: Diagram) => {
 		setDrawForm(diagram as any)
-		setPickedTag(diagram.tag)
+		setPickedTag(diagram.tag._id)
 	}
 
 	const handlePermanentlyDelete = (id: string) => {
@@ -366,6 +383,14 @@ const Boards = () => {
 		},
 		maxFiles: 1
 	});
+	const [selectedIcon, setSelectedIcon] = useState("LuDatabase")
+	const handleIconSelect = (icon: string) => {
+		setSelectedIcon(icon);
+		setDrawForm({
+			...drawForm,
+			icon: icon
+		});
+	}
 
 
 	return (
@@ -408,9 +433,10 @@ const Boards = () => {
 													<span onClick={() => setDrawOpen(false)} className='hover:border-white/50 border border-transparent h-6 w-6 hover:bg-white/20 duration-100 rounded-md flex items-center justify-center'><X className='h-4 w-4' /></span>
 												</DialogHeader>
 												<div className='flex flex-col gap-3'>
-													<input value={drawForm.title} id='title' onChange={handleDrawForm} type="text" className='input' placeholder='Diagram name' />
+													<input value={drawForm.title} id='title' onChange={handleDrawForm} type="text" className='input' placeholder='Diagram name *' required />
 													<TagsDropdown tags={tags} setPickedTag={setPickedTag} pickedTag={pickedTag} />
-													<textarea id='description' value={drawForm.description} onChange={handleDrawForm} className='input h-32 resize-none' placeholder='Diagram description' ></textarea>
+													<textarea id='description' value={drawForm.description} onChange={handleDrawForm} className='input h-32 resize-none' placeholder='Diagram description *' required></textarea>
+													<IconSelector icon={drawForm.icon} onSelect={handleIconSelect} />
 													<button type='button' onClick={() => createDraw(false)} className='bg-blue-600 button w-full'>{loading ? <Spinner /> : "Create"}</button>
 												</div>
 											</DialogContent>
@@ -431,7 +457,7 @@ const Boards = () => {
 										</Dialog>
 										<Dialog open={imported} defaultOpen={false}>
 											<div className='relative flex select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 bg-transparent duration-100 hover:bg-white/5' onClick={() => setImported(true)}>Import</div>
-											<DialogContent className="sm:max-w-[425px] border-white/30">
+											<DialogContent className="sm:max-w-[425px] border-white/5">
 												<DialogHeader>
 													<DialogTitle className='text-white'>Import drawing</DialogTitle>
 												</DialogHeader>
@@ -463,52 +489,73 @@ const Boards = () => {
 								{
 									filteredDiagrams.length === 0 ? <h2 className='text-xl text-white'>Nothing to show...</h2> :
 										filteredDiagrams.map((diagram: Diagram) => {
-											return <div className='h-max w-full text-white bg-[#333] border border-white/20 px-3 py-3 rounded-xl' key={diagram._id}>
-												<div className='flex items-center justify-between mb-3'>
-													<Link href={`/board/${diagram._id}`}>
-														<h2 className='font-semibold'>{diagram.title}</h2>
+											return (
+												<div className='h-max bg-[#1a1d1f] rounded-xl p-6 border border-white/10 hover:border-blue-500/50 transition-all cursor-pointer group hover:shadow-lg hover:shadow-blue-500/5' key={diagram._id}>
+													<div className='flex items-start justify-between mb-6'>
+														<div className="text-white p-3 bg-[#0F1117] rounded-xl border border-white/5 group-hover:border-blue-500/20">
+														<DynamicReactIcons iconName={diagram.icon}/>
+														</div>
+														<div className='flex items-center gap-2'>
+															<DropdownMenu>
+																<DropdownMenuTrigger asChild className='w-max'>
+																	<EllipsisVertical className="h-5 w-5 text-white/50 hover:text-white" />
+																</DropdownMenuTrigger>
+																<DropdownMenuContent className="w-56 border border-white/5">
+																	<Dialog open={renameDialog} onOpenChange={(e) => {
+																		setRenameDialog(e)
+																		if (e) handleRename(diagram)
+																	}}>
+																		<DialogTrigger className='hover:bg-white/5 text-white relative flex select-none items-center rounded-sm px-2 py-1.5 text-sm w-full'>Rename</DialogTrigger>
+																		<DialogContent className='text-white border-white/5 bg-secondary'>
+																			<DialogHeader className='flex items-center justify-between w-full flex-row'>
+																				<DialogTitle className='w-max'>Rename Diagram</DialogTitle>
+																				<span onClick={() => setRenameDialog(false)} className='hover:border-white/50 border border-transparent h-6 w-6 hover:bg-white/20 duration-100 rounded-md flex items-center justify-center'><X className='h-4 w-4' /></span>
+																			</DialogHeader>
+																			<div className='flex flex-col gap-3'>
+																				<input value={drawForm.title} id='title' onChange={handleDrawForm} type="text" className='input' placeholder='Diagram name *' required />
+																				<TagsDropdown tags={tags} setPickedTag={setPickedTag} pickedTag={pickedTag} />
+																				<textarea id='description' value={drawForm.description} onChange={handleDrawForm} className='input h-32 resize-none' placeholder='Diagram description *' required></textarea>
+																				<IconSelector icon={drawForm.icon} onSelect={handleIconSelect} />
+																				<button type='button' onClick={() => updateDraw(diagram)} className='bg-blue-600 button w-full'>{loading ? <Spinner /> : "Rename"}</button>
+																			</div>
+																		</DialogContent>
+																	</Dialog>
+																	<DropdownMenuItem onClick={() => {
+																		handleUpdates(diagram._id, new Map([['favourite', !diagram.favourite]]));
+																	}} className='bg-transparent duration-100 hover:bg-white/5 py-2 flex items-center justify-between'>
+																		{diagram.favourite ? "Remove from favourite" : "Add to favourite"}
+																	</DropdownMenuItem>
+																	<DropdownMenuItem onClick={() => {
+																		handleUpdates(diagram._id, new Map([['archived', !diagram.archived]]));
+																	}} className='bg-transparent duration-100 hover:bg-white/5 py-2 flex items-center justify-between'>
+																		{diagram.archived ? "Remove from archive" : "Add to archive"}
+																	</DropdownMenuItem>
+																	<DropdownMenuItem onClick={() => {
+																		diagram.deleted ? handleUpdates(diagram._id, new Map([['deleted', !diagram.deleted]])) : handleTrash(diagram._id, new Map([['deleted', !diagram.deleted]]), false);
+																	}} className='text-red-400 bg-transparent duration-100 hover:bg-white/5 py-2 flex items-center justify-between'>
+																		{diagram.deleted ? "Restore" : "Move to trash"}
+																	</DropdownMenuItem>
+																	{diagram.deleted && <DropdownMenuItem onClick={() => {
+																		handleTrash(diagram._id, new Map([['deleted', !diagram.deleted]]), true);
+																	}} className='text-red-400 bg-transparent duration-100 hover:bg-white/5 py-2 flex items-center justify-between'>
+																		{"Delete permanently"}
+																	</DropdownMenuItem>}
+																</DropdownMenuContent>
+															</DropdownMenu>
+														</div>
+													</div>
+													<Link href={`/board/${diagram._id}`} className="space-y-3">
+														<h3 className="truncate text-lg font-semibold text-white group-hover:text-blue-500 transition-colors">
+															{diagram.title} {diagram.title}
+														</h3>
+														<div className="flex items-center gap-2">
+															<div className="text-white/60 text-sm">
+																{diagram.tag?.title || 'No Tag'}
+															</div>
+														</div>
 													</Link>
-													<DropdownMenu>
-														<DropdownMenuTrigger asChild className='w-max'>
-															<EllipsisVertical />
-														</DropdownMenuTrigger>
-														<DropdownMenuContent className="w-56 border border-white/5">
-															{/* <DropdownMenuItem className='bg-transparent duration-100 hover:bg-white/15 py-2 flex items-center justify-between' > */}
-															<Dialog open={renameDialog} onOpenChange={(e) => {
-																setRenameDialog(e)
-																handleRename(diagram)
-															}}>
-																<DialogTrigger className='hover:bg-white/5 text-white relative flex  select-none items-center rounded-sm px-2 py-1.5 text-sm w-full'>Rename</DialogTrigger>
-																<DialogContent className='text-white border-white/5 bg-secondary'>
-																	<DialogHeader className='flex items-center justify-between w-full flex-row'>
-																		<DialogTitle className='w-max'>Rename Diagram</DialogTitle>
-																		<span onClick={() => setRenameDialog(false)} className='hover:border-white/50 border border-transparent h-6 w-6 hover:bg-white/20 duration-100 rounded-md flex items-center justify-center'><X className='h-4 w-4' /></span>
-																	</DialogHeader>
-																	<div className='flex flex-col gap-3'>
-																		<input value={drawForm.title} id='title' onChange={handleDrawForm} type="text" className='input' placeholder='Diagram name' />
-																		<TagsDropdown tags={tags} setPickedTag={setPickedTag} pickedTag={pickedTag} />
-																		<textarea id='description' value={drawForm.description} onChange={handleDrawForm} className='input h-32 resize-none' placeholder='Diagram description' ></textarea>
-																		<button type='button' onClick={() => updateDraw(diagram)} className='bg-blue-600 button w-full'>{loading ? <Spinner /> : "Rename"}</button>
-																	</div>
-																</DialogContent>
-															</Dialog>
-															<DropdownMenuItem onClick={() => {
-																handleUpdates(diagram._id, new Map([['favourite', !diagram.favourite]]));
-															}} className='bg-transparent duration-100 hover:bg-white/5 py-2 flex items-center justify-between' >{diagram.favourite ? "Remove from favourite" : "Add to favourite"}</DropdownMenuItem>
-															<DropdownMenuItem onClick={() => {
-																handleUpdates(diagram._id, new Map([['archived', !diagram.archived]]));
-															}} className='bg-transparent duration-100 hover:bg-white/5 py-2 flex items-center justify-between' >{diagram.archived ? "Remove from archive" : "Add to archive"}</DropdownMenuItem>
-															<DropdownMenuItem onClick={() => {
-																diagram.deleted ? handleUpdates(diagram._id, new Map([['deleted', !diagram.deleted]])) : handleTrash(diagram._id, new Map([['deleted', !diagram.deleted]]), false);
-															}} className='text-red-400 bg-transparent duration-100 hover:bg-white/5 py-2 flex items-center justify-between' >{diagram.deleted ? "Restore" : "Move to trash"}</DropdownMenuItem>
-															{diagram.deleted && <DropdownMenuItem onClick={() => {
-																handleTrash(diagram._id, new Map([['deleted', !diagram.deleted]]), true);
-															}} className='text-red-400 bg-transparent duration-100 hover:bg-white/5 py-2 flex items-center justify-between' >{"Delete permanently"}</DropdownMenuItem>}
-														</DropdownMenuContent>
-													</DropdownMenu>
 												</div>
-												<img src="https://dummyimage.com/600x400/#eee/fff.png&text=test" className='rounded-xl h-[165px] w-full' alt="" />
-											</div>
+											)
 										})
 								}
 							</div>
