@@ -6,6 +6,7 @@ import UserButton from '@/components/clerk-components/UserButton';
 import axios from 'axios';
 import { Diagram } from '@/lib/model/draw.model';
 import CreateTemplateModal from '@/components/CreateTemplateModal';
+import DynamicReactIcons from '@/components/DynamicIcons';
 
 const Templates = () => {
   const [templates, setTemplates] = useState<Diagram[]>([]);
@@ -49,7 +50,7 @@ const Templates = () => {
             >
               <div className="flex items-start justify-between mb-6">
                 <div className="text-white p-3 bg-[#0F1117] rounded-xl border border-white/5 group-hover:border-blue-500/20">
-                  <LucideIcons.AArrowDown/>
+                  <DynamicReactIcons iconName={template.icon}/>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-blue-500/50"></div>

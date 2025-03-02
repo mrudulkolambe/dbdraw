@@ -619,17 +619,8 @@ export default function App() {
       return { ...node };
     });
 
-    const updatedEdges = edges.filter((edge) => {
-      const [, sourceFieldIndex] = edge.sourceHandle?.split('-') || [];
-      const [, targetFieldIndex] = edge.targetHandle?.split('-') || [];
 
-      return !(
-        (edge.source === collection && edge.sourceHandle === `source-${sourceFieldIndex}`) ||
-        (edge.target === collection && edge.targetHandle === `target-${targetFieldIndex}`)
-      );
-    });
 
-    setEdges(updatedEdges);
     setNodes(updatedNodes as NodeType[]);
     setNodesLocal(updatedNodes as NodeType[]);
   };

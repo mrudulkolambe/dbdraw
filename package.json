@@ -27,7 +27,6 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "file-saver": "^2.0.5",
-    "html-to-image": "^1.11.11",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.424.0",
     "mongoose": "^8.5.2",
