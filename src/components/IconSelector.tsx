@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import * as LuReactIcons from "react-icons/lu";
 import { twMerge } from "tailwind-merge";
+import DynamicReactIcons from "./DynamicIcons";
 
 const IconSelector = ({ icon, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,7 +18,7 @@ const IconSelector = ({ icon, onSelect }) => {
     <>
     <div className="relative">
     <div className="input flex items-center gap-3 cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
-        {DynamicReactIcons(icon)} {icon}
+        <DynamicReactIcons iconName={icon} /> {icon}
       </div>
       {isOpen && <div className="flex p-4 flex-col gap-4 rounded-lg border border-white/10 w-full  h-[40vh] absolute bg-secondary/20 backdrop-blur shadow-lg bottom-14">
         <input onChange={(e) => setSearch(e.target.value)} className="input" placeholder="Search icons..." />

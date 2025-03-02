@@ -1,145 +1,57 @@
 "use client";
 
-import React, { useCallback } from 'react';
-import { ReactFlow, Background, Controls, Edge, Node, BackgroundVariant } from '@xyflow/react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ReactFlow, Background, Controls, Edge, Node, BackgroundVariant, useNodesState } from '@xyflow/react';
 import "@xyflow/react/dist/style.css";
 import { useParams, useRouter } from 'next/navigation';
 import { Database } from 'lucide-react';
 import UserButton from '@/components/clerk-components/UserButton';
 import CollectionNode from '@/components/nodes/CollectionNode';
 import { Field } from '@/components/nodes/CollectionNode';
+import axios from 'axios';
+import { Diagram } from '@/lib/model/draw.model';
+import { NodeType } from '@/components/nodes';
 
 const nodeTypes = {
 	collection: CollectionNode,
-};
-
-// Template data - this would come from your templates store/API
-const templateData = {
-	ecommerce: {
-		title: 'E-commerce Platform',
-		nodes: [
-			{
-				id: 'products',
-				type: 'collection',
-				position: { x: 100, y: 100 },
-				data: {
-					label: 'Products',
-					fields: [
-						{ id: '1', name: 'name', type: 'string', required: true, unique: false, list: false } as Field,
-						{ id: '2', name: 'price', type: 'number', required: true, unique: false, list: false } as Field,
-						{ id: '3', name: 'description', type: 'string', required: false, unique: false, list: false } as Field,
-						{ id: '4', name: 'category', type: 'ref', required: true, unique: false, list: false, ref: 'Categories' } as Field,
-					],
-					onClick: () => { },
-					onFieldDelete: () => { },
-					onDuplicate: () => { },
-					onRename: () => { },
-					onDelete: () => { },
-					addNote: () => { },
-					tableWidth: 280
-				}
-			},
-			{
-				id: 'categories',
-				type: 'collection',
-				position: { x: 500, y: 100 },
-				data: {
-					label: 'Categories',
-					fields: [
-						{ id: '1', name: 'name', type: 'string', required: true, unique: true, list: false } as Field,
-						{ id: '2', name: 'slug', type: 'string', required: true, unique: true, list: false } as Field,
-					],
-					onClick: () => { },
-					onFieldDelete: () => { },
-					onDuplicate: () => { },
-					onRename: () => { },
-					onDelete: () => { },
-					addNote: () => { },
-					tableWidth: 280
-				}
-			},
-			{
-				id: 'orders',
-				type: 'collection',
-				position: { x: 100, y: 400 },
-				data: {
-					label: 'Orders',
-					fields: [
-						{ id: '1', name: 'orderNumber', type: 'string', required: true, unique: true, list: false } as Field,
-						{ id: '2', name: 'customer', type: 'ref', required: true, unique: false, list: false, ref: 'Customers' } as Field,
-						{ id: '3', name: 'products', type: 'ref', required: true, unique: false, list: true, ref: 'Products' } as Field,
-						{ id: '4', name: 'totalAmount', type: 'number', required: true, unique: false, list: false } as Field,
-						{ id: '5', name: 'status', type: 'string', required: true, unique: false, list: false } as Field,
-					],
-					onClick: () => { },
-					onFieldDelete: () => { },
-					onDuplicate: () => { },
-					onRename: () => { },
-					onDelete: () => { },
-					addNote: () => { },
-					tableWidth: 280
-				}
-			},
-			{
-				id: 'customers',
-				type: 'collection',
-				position: { x: 500, y: 400 },
-				data: {
-					label: 'Customers',
-					fields: [
-						{ id: '1', name: 'email', type: 'string', required: true, unique: true, list: false } as Field,
-						{ id: '2', name: 'name', type: 'string', required: true, unique: false, list: false } as Field,
-						{ id: '3', name: 'address', type: 'string', required: false, unique: false, list: false } as Field,
-					],
-					onClick: () => { },
-					onFieldDelete: () => { },
-					onDuplicate: () => { },
-					onRename: () => { },
-					onDelete: () => { },
-					addNote: () => { },
-					tableWidth: 280
-				}
-			},
-		],
-		edges: [
-			{
-				id: 'e1',
-				source: 'products',
-				target: 'categories',
-				sourceHandle: 'target-3',
-				targetHandle: 'source',
-				type: 'smoothstep',
-				animated: true,
-			},
-			{
-				id: 'e2',
-				source: 'orders',
-				target: 'products',
-				sourceHandle: 'target-2',
-				targetHandle: 'source',
-				type: 'smoothstep',
-				animated: true,
-			},
-			{
-				id: 'e3',
-				source: 'orders',
-				target: 'customers',
-				sourceHandle: 'target-1',
-				targetHandle: 'source',
-				type: 'smoothstep',
-				animated: true,
-			},
-		]
-	},
-	// Add more templates here
 };
 
 const TemplateView = () => {
 	const params = useParams();
 	const router = useRouter();
 	const templateId = params.id as string;
+	const [template, setTemplate] = useState<Diagram | null>(null);
+	const [loading, setLoading] = useState(true);
+	const [nodes, setNodes, onNodesChange] = useNodesState<NodeType>([]);
+	const [localNodes, setLocalNodes] = useState<NodeType[]>([]);
+	const [edges, setEdges] = useState<Edge[]>([]);
 
-	const template = templateData[templateId as keyof typeof templateData];
+
+
+	useEffect(() => {
+		const fetchTemplate = async () => {
+			try {
+				const response = await axios.get(`/api/templates/${templateId}`);
+				setTemplate(response.data.diagram);
+				setNodes(response.data.diagram.flow.nodes as NodeType[]);
+				setEdges(response.data.diagram.flow.edges as Edge[]);
+			} catch (error) {
+				console.error('Error fetching template:', error);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchTemplate();
+	}, [templateId]);
+
+	if (loading) {
+		return (
+			<div className="min-h-screen bg-[#0F1117] flex items-center justify-center">
+				<div className="text-white">Loading...</div>
+			</div>
+		);
+	}
 
 	if (!template) {
 		return (
@@ -160,9 +72,16 @@ const TemplateView = () => {
 	return (
 		<div className="min-h-screen bg-[#0F1117]">
 			<nav className="h-16 border-b border-white/10 flex items-center justify-between px-8">
-				<div className="flex items-center gap-2">
-					<Database className="h-5 w-5 text-white" />
-					<h1 className="text-white font-semibold">DB Draw</h1>
+				<div className="flex items-center gap-4">
+					<div className="flex items-center gap-2">
+						<Database className="h-5 w-5 text-white" />
+						<h1 className="text-white font-semibold">DB Draw</h1>
+					</div>
+					<div className="h-6 w-[1px] bg-white/10" />
+					<div>
+						<h2 className="text-white font-medium">{template.title}</h2>
+						<p className="text-white/60 text-sm">{template.description}</p>
+					</div>
 				</div>
 				<div className="flex items-center gap-4">
 					<button
@@ -177,13 +96,15 @@ const TemplateView = () => {
 
 			<main className="h-[calc(100vh-64px)]">
 				<ReactFlow
-					nodes={template.nodes}
-					edges={template.edges}
+					colorMode="dark"
+					nodes={nodes}
+					onNodesChange={onNodesChange}
+					edges={edges}
 					nodeTypes={nodeTypes}
 					fitView
 					minZoom={0.1}
 					maxZoom={1.5}
-					proOptions={{ hideAttribution: true }}
+					proOptions={{ hideAttribution: true,  }}
 				>
 					<Background
 						style={{ backgroundColor: "#111315" }}
@@ -192,7 +113,7 @@ const TemplateView = () => {
 						gap={[50, 50]}
 						variant={BackgroundVariant.Dots}
 					/>
-					<Controls />
+					<Controls orientation='horizontal' />
 				</ReactFlow>
 			</main>
 		</div>

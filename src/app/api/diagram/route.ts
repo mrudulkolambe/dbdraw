@@ -32,11 +32,10 @@ export async function GET() {
   const user = await currentUser();
   if (user) {
     const diagrams = await Diagrams.find({
-      user: user.id
-    }).populate({
-      path: 'tag',
-      select: 'title _id'
-    });
+      user: user.id,
+      tag: { $exists: true, $ne: "" },
+    }).populate("tag");
+    console.log(diagrams)
     return NextResponse.json({ diagrams, success: true });
   } else {
     return NextResponse.json({ message: 'User not authenticated' });
