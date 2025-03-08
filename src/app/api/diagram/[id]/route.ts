@@ -10,14 +10,31 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 	const user = await currentUser();
 
 	if (user) {
-		const request = await req.json();
-		console.log(request)
-		const drawUpdate = await Diagrams.findByIdAndUpdate(id, request, {
-			returnOriginal: false
-		})
-		return NextResponse.json({ success: true, message: "updated", draw: drawUpdate }, { status: 200 });
+		try {
+			const request = await req.json();
+			console.log(request);
+			
+			// Handle empty tag value
+			if (request.tag === "") {
+				request.tag = null;
+			}
+			
+			const drawUpdate = await Diagrams.findByIdAndUpdate(id, request, {
+				returnOriginal: false,
+				new: true // Ensure we get the updated document back
+			}).populate("tag");
+			
+			return NextResponse.json({ success: true, message: "updated", draw: drawUpdate }, { status: 200 });
+		} catch (error) {
+			console.error("Error updating diagram:", error);
+			return NextResponse.json({ 
+				success: false, 
+				message: "Error updating diagram", 
+				error: error 
+			}, { status: 500 });
+		}
 	} else {
-		return NextResponse.json({ success: false, message: "something went wrong", draw: undefined }, { status: 500 });
+		return NextResponse.json({ success: false, message: "User not authenticated", draw: undefined }, { status: 401 });
 	}
 }
 
@@ -27,14 +44,23 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 	const user = await currentUser();
 	if (isValidObjectId(id)) {
 		if (user) {
-			const draw = await Diagrams.findOne({ _id: id, user: user.id })
-			if (draw) return NextResponse.json({ success: true, message: "found", draw: draw }, { status: 200 });
-			return NextResponse.json({ success: false, message: "not found", draw: undefined }, { status: 404 });
+			try {
+				const draw = await Diagrams.findOne({ _id: id, user: user.id }).populate("tag");
+				if (draw) return NextResponse.json({ success: true, message: "found", draw: draw }, { status: 200 });
+				return NextResponse.json({ success: false, message: "not found", draw: undefined }, { status: 404 });
+			} catch (error) {
+				console.error("Error fetching diagram:", error);
+				return NextResponse.json({ 
+					success: false, 
+					message: "Error fetching diagram", 
+					error: error 
+				}, { status: 500 });
+			}
 		} else {
-			return NextResponse.json({ success: false, message: "Diagram Doesn't exist", draw: undefined }, { status: 500 });
+			return NextResponse.json({ success: false, message: "User not authenticated", draw: undefined }, { status: 401 });
 		}
 	} else {
-		return NextResponse.json({ success: false, message: "not found", draw: undefined }, { status: 404 });
+		return NextResponse.json({ success: false, message: "Invalid diagram ID", draw: undefined }, { status: 400 });
 	}
 }
 
@@ -44,13 +70,30 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 	const user = await currentUser();
 
 	if (user) {
-		const request = await req.json();
-		const drawUpdate = await Diagrams.findByIdAndUpdate(id, request, {
-			returnOriginal: false
-		})
-		return NextResponse.json({ success: true, message: "updated", draw: drawUpdate }, { status: 200 });
+		try {
+			const request = await req.json();
+			
+			// Handle empty tag value
+			if (request.tag === "") {
+				request.tag = null;
+			}
+			
+			const drawUpdate = await Diagrams.findByIdAndUpdate(id, request, {
+				returnOriginal: false,
+				new: true // Ensure we get the updated document back
+			}).populate("tag");
+			
+			return NextResponse.json({ success: true, message: "updated", draw: drawUpdate }, { status: 200 });
+		} catch (error) {
+			console.error("Error updating diagram:", error);
+			return NextResponse.json({ 
+				success: false, 
+				message: "Error updating diagram", 
+				error: error 
+			}, { status: 500 });
+		}
 	} else {
-		return NextResponse.json({ success: false, message: "something went wrong", draw: undefined }, { status: 500 });
+		return NextResponse.json({ success: false, message: "User not authenticated", draw: undefined }, { status: 401 });
 	}
 }
 
@@ -60,9 +103,18 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 	const user = await currentUser();
 
 	if (user) {
-		await Diagrams.findByIdAndDelete(id)
-		return NextResponse.json({ success: true, message: "deleted" }, { status: 200 });
+		try {
+			await Diagrams.findByIdAndDelete(id);
+			return NextResponse.json({ success: true, message: "deleted" }, { status: 200 });
+		} catch (error) {
+			console.error("Error deleting diagram:", error);
+			return NextResponse.json({ 
+				success: false, 
+				message: "Error deleting diagram", 
+				error: error 
+			}, { status: 500 });
+		}
 	} else {
-		return NextResponse.json({ success: false, message: "something went wrong", }, { status: 500 });
+		return NextResponse.json({ success: false, message: "User not authenticated" }, { status: 401 });
 	}
 }

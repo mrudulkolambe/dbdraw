@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const drawInit = new Diagrams({
       user: user.id,
       title: request.title,
-      tag: request.tag,
+      tag: request.tag || null, // Handle empty tag by setting it to null
       flow: request.flow,
       description: request.description,
       icon: request.icon,
@@ -31,12 +31,21 @@ export async function GET() {
   await connect();
   const user = await currentUser();
   if (user) {
-    const diagrams = await Diagrams.find({
-      user: user.id,
-      tag: { $exists: true, $ne: "" },
-    }).populate("tag");
-    console.log(diagrams)
-    return NextResponse.json({ diagrams, success: true });
+    try {
+      // Modified query to handle both populated and non-populated tag fields
+      const diagrams = await Diagrams.find({
+        user: user.id,
+        $or: [
+          { tag: { $exists: true, $ne: "" } },
+          { tag: null }
+        ]
+      }).populate("tag");
+      
+      return NextResponse.json({ diagrams, success: true });
+    } catch (error) {
+      console.error("Error fetching diagrams:", error);
+      return NextResponse.json({ message: 'Error fetching diagrams', error: error.message }, { status: 500 });
+    }
   } else {
     return NextResponse.json({ message: 'User not authenticated' });
   }

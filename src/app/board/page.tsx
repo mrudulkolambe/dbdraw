@@ -96,7 +96,7 @@ const Boards = () => {
 				return;
 			}
 		}
-		
+
 		setLoading(true);
 		let body;
 		if (imported) {
@@ -104,7 +104,8 @@ const Boards = () => {
 		} else {
 			body = {
 				...drawForm,
-				tag: pickedTag
+				tag: pickedTag,
+				icon: selectedIcon
 			};
 		}
 		const response = await fetch('/api/diagram', {
@@ -206,6 +207,7 @@ const Boards = () => {
 		setConfirmDeleteDialog({ show: true, id, data, isPermanent: permanent })
 	}
 	const [value, setValue] = React.useState("FaUsers")
+
 	const handleUpdates = async (id: string, data: Map<string, any>) => {
 		const dataObject = Object.fromEntries(data);
 
@@ -216,7 +218,7 @@ const Boards = () => {
 			},
 			body: JSON.stringify({
 				...dataObject,
-				tag: pickedTag || "" // Ensure tag is never undefined
+				tag: pickedTag || null // Use null instead of empty string
 			}),
 		}).then(async (response) => {
 			const res = await response.json();
@@ -226,7 +228,7 @@ const Boards = () => {
 					if (diagram._id === id) {
 						return {
 							...res.draw,
-							tag: res.draw.tag || "", // Ensure tag is never undefined in state
+							tag: res.draw.tag || null, // Use null instead of empty string
 							description: res.draw.description,
 							deleted: res.draw.deleted,
 							favourite: res.draw.favourite,
@@ -294,7 +296,11 @@ const Boards = () => {
 			default:
 				// For tag filtering
 				filtered = diagrams.filter((diagram: Diagram) => {
-					return !diagram.archived && !diagram.deleted && diagram.tag === activeTab.ref;
+					// Check if diagram.tag exists and matches the activeTab.ref
+					return !diagram.archived && !diagram.deleted &&
+						(diagram.tag && typeof diagram.tag === 'object' ?
+							diagram.tag._id === activeTab.ref :
+							diagram.tag === activeTab.ref);
 				});
 				break;
 		}
@@ -329,8 +335,15 @@ const Boards = () => {
 	}
 
 	const handleRename = (diagram: Diagram) => {
-		setDrawForm(diagram as any)
-		setPickedTag(diagram.tag._id)
+		setDrawForm(diagram as any);
+		// Safely handle tag which might be null, undefined, or an object with _id
+		if (diagram.tag && typeof diagram.tag === 'object' && diagram.tag._id) {
+			setPickedTag(diagram.tag._id);
+		} else if (typeof diagram.tag === 'string' && diagram.tag) {
+			setPickedTag(diagram.tag);
+		} else {
+			setPickedTag("");
+		}
 	}
 
 	const handlePermanentlyDelete = (id: string) => {
@@ -384,6 +397,7 @@ const Boards = () => {
 		maxFiles: 1
 	});
 	const [selectedIcon, setSelectedIcon] = useState("LuDatabase")
+
 	const handleIconSelect = (icon: string) => {
 		setSelectedIcon(icon);
 		setDrawForm({
@@ -493,7 +507,7 @@ const Boards = () => {
 												<div className='h-max bg-[#1a1d1f] rounded-xl p-6 border border-white/10 hover:border-blue-500/50 transition-all cursor-pointer group hover:shadow-lg hover:shadow-blue-500/5' key={diagram._id}>
 													<div className='flex items-start justify-between mb-6'>
 														<div className="text-white p-3 bg-[#0F1117] rounded-xl border border-white/5 group-hover:border-blue-500/20">
-														<DynamicReactIcons iconName={diagram.icon}/>
+															<DynamicReactIcons iconName={diagram.icon} />
 														</div>
 														<div className='flex items-center gap-2'>
 															<DropdownMenu>
@@ -550,7 +564,8 @@ const Boards = () => {
 														</h3>
 														<div className="flex items-center gap-2">
 															<div className="text-white/60 text-sm">
-																{diagram.tag?.title || 'No Tag'}
+																{(diagram.tag && typeof diagram.tag === 'object' && diagram.tag.title) ? 
+																	diagram.tag.title : 'No Tag'}
 															</div>
 														</div>
 													</Link>

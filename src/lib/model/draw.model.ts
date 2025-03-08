@@ -18,7 +18,7 @@ interface Diagram {
 	tag: {
 		_id: string;
 		title: string;
-	};
+	} | string | null;
 	description?: string;
 	flow: Flow;
 	archived: boolean;
@@ -46,7 +46,8 @@ const DRAW_SCHEMA = new Schema<DiagramDocument>({
 	tag: {
 		type: Schema.Types.ObjectId,
 		ref: "Tags",
-		required: true
+		required: false,
+		default: null
 	},
 	title: {
 		type: String,
