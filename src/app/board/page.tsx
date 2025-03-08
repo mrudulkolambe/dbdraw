@@ -412,7 +412,8 @@ const Boards = () => {
 			<section className='custom-cursor min-h-screen min-w-screen bg-primary relative'>
 				<nav className="flex justify-between items-center py-8 px-32 relative z-[1]">
 					<div className='w-10'>
-						<img src="/logo.svg" alt="" />
+						{/* <img src="/logo.svg" alt="" /> */}
+					<Link href={"/"}><h1 className='text-2xl font-bold text-white'>DBDraw</h1></Link>
 					</div>
 					<UserButton />
 				</nav>
@@ -560,7 +561,7 @@ const Boards = () => {
 													</div>
 													<Link href={`/board/${diagram._id}`} className="space-y-3">
 														<h3 className="truncate text-lg font-semibold text-white group-hover:text-blue-500 transition-colors">
-															{diagram.title} {diagram.title}
+															{diagram.title}
 														</h3>
 														<div className="flex items-center gap-2">
 															<div className="text-white/60 text-sm">
