@@ -46,7 +46,7 @@ const Templates = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {templates?.map((template) => (
             <Link
-            href={`/templates/${template._id}`}
+            href={`/diagram/${template._id}`}
               key={template._id}
               className="bg-[#1a1d1f] rounded-xl p-6 border border-white/10 hover:border-blue-500/50 transition-all cursor-pointer group hover:shadow-lg hover:shadow-blue-500/5"
             >
@@ -65,6 +65,7 @@ const Templates = () => {
                 </h3>
                 <div className="flex items-center gap-2">
                   <div className="text-white/60 text-sm">
+                  {/* @ts-ignore */}
                     {template.tag?.title || 'No Tag'}
                   </div>
                 </div>

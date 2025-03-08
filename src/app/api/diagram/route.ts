@@ -2,6 +2,7 @@
 
 import { NextResponse } from 'next/server';
 import Diagrams from '@/lib/model/draw.model';
+import Tags from '@/lib/model/tags.model';
 import { currentUser } from "@clerk/nextjs/server";
 import { connect } from '@/lib/db';
 
@@ -11,10 +12,13 @@ export async function POST(req: Request) {
   if (user) {
     const request = await req.json();
     console.log(request.flow)
+    // Convert empty or invalid tag to null
+    const tag = request.tag && request.tag !== "" ? request.tag : null;
+    
     const drawInit = new Diagrams({
       user: user.id,
       title: request.title,
-      tag: request.tag,
+      tag: tag,
       flow: request.flow,
       description: request.description,
       icon: request.icon,
@@ -31,12 +35,21 @@ export async function GET() {
   await connect();
   const user = await currentUser();
   if (user) {
-    const diagrams = await Diagrams.find({
-      user: user.id,
-      tag: { $exists: true, $ne: "" },
-    }).populate("tag");
-    console.log(diagrams)
-    return NextResponse.json({ diagrams, success: true });
+    try {
+      // Modified query to handle both populated and non-populated tag fields
+      const diagrams = await Diagrams.find({
+        user: user.id,
+        // $or: [
+        //   { tag: { $exists: true, $ne: "" } },
+        //   { tag: null }
+        // ]
+      }).populate("tag");
+      
+      return NextResponse.json({ diagrams, success: true });
+    } catch (error) {
+      console.error("Error fetching diagrams:", error);
+      return NextResponse.json({ message: 'Error fetching diagrams', error: error }, { status: 500 });
+    }
   } else {
     return NextResponse.json({ message: 'User not authenticated' });
   }

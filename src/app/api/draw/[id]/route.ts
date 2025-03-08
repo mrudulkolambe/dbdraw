@@ -2,7 +2,6 @@
 
 import { NextResponse } from 'next/server';
 import Diagrams from '@/lib/model/draw.model';
-import Tags from '@/lib/model/tags.model';
 import { currentUser } from "@clerk/nextjs/server";
 import { connect } from '@/lib/db';
 
@@ -35,19 +34,12 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  try {
-    await connect();
-    const diagrams = await Diagrams.find({
-      isTemplate: true
-    }).populate({
-      path: 'tag',
-      model: Tags,
-      select: 'title _id'
-    });
-    
-    return NextResponse.json({ diagrams, success: true });
-  } catch (error: any) {
-    console.error('Error fetching templates:', error);
-    return NextResponse.json({ message: 'Error fetching templates', error: error?.message || 'Unknown error' }, { status: 500 });
-  }
+  await connect();
+  const diagrams = await Diagrams.find({
+    isTemplate: true
+  }).populate({
+    path: 'tag',
+    select: 'title _id'
+  });
+  return NextResponse.json({ diagrams, success: true });
 }

@@ -27,8 +27,8 @@ export default function CreateTemplateModal({ isOpen, onClose, onSuccess }: Crea
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title.trim() || !formData.description.trim() || !formData.tag.trim()) {
-      toast.error('Please fill all fields');
+    if (!formData.title.trim() || !formData.description.trim()) {
+      toast.error('Please fill all required fields');
       return;
     }
     try {
@@ -80,15 +80,14 @@ export default function CreateTemplateModal({ isOpen, onClose, onSuccess }: Crea
             </div>
             
             <div>
-              <label className="block text-white mb-2">Tag *</label>
+              <label className="block text-white mb-2">Tag</label>
               <input
                 type="text"
                 id="tag"
                 value={formData.tag}
                 onChange={handleInputChange}
                 className="w-full p-2 rounded bg-[#0F1117] border border-white/10 text-white"
-                placeholder="Template tag"
-                required
+                placeholder="Template tag (optional)"
               />
             </div>
 
