@@ -35,10 +35,7 @@ export async function POST(req: Request) {
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     await connect();
-    const user = await currentUser();
-    if (!user) {
-      return NextResponse.json({ message: 'User not authenticated' }, { status: 401 });
-    }
+  
 
     const { id } = params;
 
@@ -61,7 +58,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json({
       success: true,
-      diagram: diagram});
+      diagram: diagram
+    });
   } catch (error: any) {
     console.error('Error fetching template:', error);
     return NextResponse.json({ message: 'Error fetching template', error: error?.message || 'Unknown error' }, { status: 500 });
