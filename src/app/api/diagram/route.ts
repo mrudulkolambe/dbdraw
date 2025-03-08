@@ -43,7 +43,10 @@ export async function GET() {
         //   { tag: { $exists: true, $ne: "" } },
         //   { tag: null }
         // ]
-      }).populate("tag");
+      }).populate({
+				path: 'tag',
+				model: Tags,
+			  });
       
       return NextResponse.json({ diagrams, success: true });
     } catch (error) {

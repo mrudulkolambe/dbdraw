@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import Diagrams from '@/lib/model/draw.model';
 import { currentUser } from "@clerk/nextjs/server";
 import { connect } from '@/lib/db';
+import Tags from '@/lib/model/tags.model';
 
 // Ensure dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -39,6 +40,7 @@ export async function GET() {
     isTemplate: true
   }).populate({
     path: 'tag',
+    model: Tags,
     select: 'title _id'
   });
   return NextResponse.json({ diagrams, success: true });
