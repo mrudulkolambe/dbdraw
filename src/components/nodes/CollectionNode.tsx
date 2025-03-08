@@ -58,7 +58,7 @@ export default function CollectionNode({
 
   const checkRoute = (onClick: () => void) => {
     const path = window.location.pathname;
-    if(path.includes("templates")){
+    if(path.includes("diagram")){
       return;
     }else{
       onClick()
@@ -83,10 +83,14 @@ export default function CollectionNode({
         </DialogContent>
       </Dialog>
 
-      <ContextMenu>
+      <ContextMenu onOpenChange={(open) => {
+        if (open) {
+          data.onClick(id);
+        }
+      }}>
         <ContextMenuTrigger>
           <ContextMenuContent className="border-white/5 bg-secondary">
-            {/* <ContextMenuItem onClick={() => data.onRename(id)} className="text-xs hover:bg-white/5 px-3 py-2">Rename</ContextMenuItem> */}
+            <ContextMenuItem onClick={() => checkRoute(() => data.onRename(id))} className="text-xs hover:bg-white/5 px-3 py-2">Rename</ContextMenuItem>
             <ContextMenuItem onClick={() => checkRoute(() => data.onDuplicate(data))} className="text-xs hover:bg-white/5 px-3 py-2">Duplicate</ContextMenuItem>
             <ContextMenuItem onClick={() => checkRoute(() => data.onDelete(id))} className="text-xs hover:bg-white/5 px-3 py-2">Delete</ContextMenuItem>
             {/* <ContextMenuItem onClick={() => setShowNote(true)} className="hover:bg-white/10 px-3 py-2">Add note</ContextMenuItem> */}

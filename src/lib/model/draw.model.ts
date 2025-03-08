@@ -15,10 +15,11 @@ interface Diagram {
 	_id: string;
 	user: string;
 	title: string;
-	tag: {
-		_id: string;
-		title: string;
-	} | string | null;
+	// tag: {
+	// 	_id: string;
+	// 	title: string;
+	// } | string | null;
+	tag: mongoose.Types.ObjectId;
 	description?: string;
 	flow: Flow;
 	archived: boolean;
@@ -36,7 +37,9 @@ interface Collection {
 	}
 }
 
-interface DiagramDocument extends Diagram { }
+interface DiagramDocument extends Diagram { 
+	
+}
 
 const DRAW_SCHEMA = new Schema<DiagramDocument>({
 	user: {
@@ -46,8 +49,7 @@ const DRAW_SCHEMA = new Schema<DiagramDocument>({
 	tag: {
 		type: Schema.Types.ObjectId,
 		ref: "Tags",
-		required: false,
-		default: null
+		required: true,
 	},
 	title: {
 		type: String,
