@@ -63,7 +63,10 @@ const Boards = () => {
 		description: ""
 	}
 
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(true);
+	const [diagramsLoading, setDiagramsLoading] = useState(false);
+	const [tagsLoading, setTagsLoading] = useState(false);
+	const [actionLoading, setActionLoading] = useState(false);
 	const router = useRouter();
 	const [activeTab, setActiveTab] = useState(tabs[0]);
 	const [pickedTag, setPickedTag] = useState("");
@@ -89,7 +92,6 @@ const Boards = () => {
 
 
 	const createDraw = async (imported: boolean, importedData?: object) => {
-		// Validate all required fields if not importing
 		if (!imported) {
 			if (!drawForm.title.trim() || !drawForm.description.trim() || !pickedTag) {
 				toast.error('Please fill all fields and select a tag');
@@ -97,37 +99,41 @@ const Boards = () => {
 			}
 		}
 
-		setLoading(true);
-		let body;
-		if (imported) {
-			body = importedData;
-		} else {
-			body = {
-				...drawForm,
-				tag: pickedTag,
-				icon: selectedIcon
-			};
-		}
-		const response = await fetch('/api/diagram', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(body),
-		});
+		setActionLoading(true);
+		try {
+			let body;
+			if (imported) {
+				body = importedData;
+			} else {
+				body = {
+					...drawForm,
+					tag: pickedTag || null,
+					icon: selectedIcon
+				};
+			}
+			const response = await fetch('/api/diagram', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(body),
+			});
 
-		const data = await response.json();
-		if (response.ok) {
-			setLoading(false);
-			setDrawForm(drawInit);
-			setPickedTag("");
-			setImported(false);
-			setImportedFileContent(undefined);
-			router.push(`/board/${data._id}`);
-		} else {
-			setLoading(false);
-			toast.error('Error creating diagram');
-			console.error('Error creating diagram:', data.message);
+			const data = await response.json();
+			if (response.ok) {
+				setDrawForm(drawInit);
+				setPickedTag("");
+				setImported(false);
+				setImportedFileContent(undefined);
+				router.push(`/board/${data._id}`);
+			} else {
+				throw new Error(data.message || 'Error creating diagram');
+			}
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Error creating diagram');
+			console.error('Error creating diagram:', error);
+		} finally {
+			setActionLoading(false);
 		}
 	}
 
@@ -136,7 +142,7 @@ const Boards = () => {
 			toast.error('Please fill all fields and select a tag');
 			return;
 		}
-		setLoading(true);
+		setActionLoading(true);
 		const datamap = new Map();
 		datamap.set('title', drawForm.title)
 		datamap.set('description', drawForm.description)
@@ -146,60 +152,82 @@ const Boards = () => {
 	}
 
 	const initData = async () => {
+		setLoading(true);
+		try {
+			// DIAGRAM
+			setDiagramsLoading(true);
+			const responseDiag = await fetch('/api/diagram', {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
 
-		// DIAGRAM
-		const responseDiag = await fetch('/api/diagram', {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
-
-		const dataDiag = await responseDiag.json();
-		if (responseDiag.ok) {
-			setDiagrams(dataDiag.diagrams)
-			setFilteredDiagrams(dataDiag.diagrams.filter((diagram: Diagram) => {
-				return !diagram.archived && !diagram.deleted
-			}))
-		} else {
-			console.error('Error creating diagram:', dataDiag.message);
+			const dataDiag = await responseDiag.json();
+			if (responseDiag.ok) {
+				setDiagrams(dataDiag.diagrams)
+				setFilteredDiagrams(dataDiag.diagrams.filter((diagram: Diagram) => {
+					return !diagram.archived && !diagram.deleted
+				}))
+			} else {
+				throw new Error(dataDiag.message || 'Error fetching diagrams');
+			}
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Error fetching diagrams');
+			console.error('Error fetching diagrams:', error);
+		} finally {
+			setDiagramsLoading(false);
 		}
 
-		// TAGS
-		const responseTags = await fetch('/api/tag', {
-			method: 'GET',
-			cache: 'force-cache',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
+		try {
+			// TAGS
+			setTagsLoading(true);
+			const responseTags = await fetch('/api/tag', {
+				method: 'GET',
+				cache: 'force-cache',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
 
-		const dataTags = await responseTags.json();
-		if (responseTags.ok) {
-			setTags(dataTags.tags)
-		} else {
-			console.error('Error creating diagram:', dataTags.message);
+			const dataTags = await responseTags.json();
+			if (responseTags.ok) {
+				setTags(dataTags.tags)
+			} else {
+				throw new Error(dataTags.message || 'Error fetching tags');
+			}
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Error fetching tags');
+			console.error('Error fetching tags:', error);
+		} finally {
+			setTagsLoading(false);
+			setLoading(false);
 		}
 	}
 
 	const createTag = async () => {
-		setLoading(true);
-		const response = await fetch('/api/tag', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(tagForm),
-		});
+		setActionLoading(true);
+		try {
+			const response = await fetch('/api/tag', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(tagForm),
+			});
 
-		const data = await response.json();
-		if (response.ok) {
-			setLoading(false)
-			toast.success("Tag created")
-			window.location.reload()
-		} else {
-			setLoading(false)
-			console.error('Error creating diagram:', data.message);
+			const data = await response.json();
+			if (response.ok) {
+				toast.success("Tag created")
+				window.location.reload()
+			} else {
+				throw new Error(data.message || 'Error creating tag');
+			}
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Error creating tag');
+			console.error('Error creating tag:', error);
+		} finally {
+			setActionLoading(false);
 		}
 	}
 
@@ -209,61 +237,61 @@ const Boards = () => {
 	const [value, setValue] = React.useState("FaUsers")
 
 	const handleUpdates = async (id: string, data: Map<string, any>) => {
-		const dataObject = Object.fromEntries(data);
-
-		const updatePromise = fetch(`/api/diagram/${id}`, {
-			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({
-				...dataObject,
-				tag: pickedTag || null // Use null instead of empty string
-			}),
-		}).then(async (response) => {
-			const res = await response.json();
-
-			if (res.success) {
-				let newArr = diagrams.map((diagram) => {
-					if (diagram._id === id) {
-						return {
-							...res.draw,
-							tag: res.draw.tag || null, // Use null instead of empty string
-							description: res.draw.description,
-							deleted: res.draw.deleted,
-							favourite: res.draw.favourite,
-							archived: res.draw.archived,
-						};
-					} else {
-						return diagram;
-					}
-				});
-
-				setLoading(false);
-				setRenameDialog(false);
-				setDiagrams(newArr);
-				handleFilter(activeTab, newArr);
-
-				// Reset form and tag after successful update
-				setDrawForm(drawInit);
-				setPickedTag("");
-
-				return res;
-			} else {
-				throw new Error(res.message);
-			}
-		});
-
-		toast.promise(updatePromise, {
-			loading: 'Loading...',
-			success: (res) => `Diagram has been updated successfully!`,
-			error: (err) => `Error: ${err.message}`,
-		});
-
+		setActionLoading(true);
 		try {
-			await updatePromise;
+			const dataObject = Object.fromEntries(data);
+
+			const updatePromise = fetch(`/api/diagram/${id}`, {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					...dataObject,
+					tag: pickedTag || null
+				}),
+			}).then(async (response) => {
+				const res = await response.json();
+
+				if (res.success) {
+					let newArr = diagrams.map((diagram) => {
+						if (diagram._id === id) {
+							return {
+								...res.draw,
+								tag: res.draw.tag || null,
+								description: res.draw.description,
+								deleted: res.draw.deleted,
+								favourite: res.draw.favourite,
+								archived: res.draw.archived,
+							};
+						} else {
+							return diagram;
+						}
+					});
+
+					setDiagrams(newArr);
+					handleFilter(activeTab, newArr);
+
+					// Reset form and tag after successful update
+					setDrawForm(drawInit);
+					setPickedTag("");
+
+					return res;
+				} else {
+					throw new Error(res.message || 'Error updating diagram');
+				}
+			});
+
+			toast.promise(updatePromise, {
+				loading: 'Loading...',
+				success: (res) => `Diagram has been updated successfully!`,
+				error: (err) => `Error: ${err.message}`,
+			});
 		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Error updating diagram');
 			console.error('Error updating diagram:', error);
+		} finally {
+			setActionLoading(false);
 		}
 	};
 
@@ -347,20 +375,28 @@ const Boards = () => {
 	}
 
 	const handlePermanentlyDelete = (id: string) => {
-		const deletePromise = fetch(`/api/diagram/${id}`, {
-			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		})
-			.then((res) => {
-				initData()
+		setActionLoading(true);
+		try {
+			const deletePromise = fetch(`/api/diagram/${id}`, {
+				method: 'DELETE',
+				headers: {
+					'Content-Type': 'application/json',
+				},
 			})
-		toast.promise(deletePromise, {
-			loading: 'Loading...',
-			success: (res) => `Diagram has been deleted successfully!`,
-			error: (err) => `Error: ${err.message}`,
-		});
+				.then((res) => {
+					initData()
+				})
+			toast.promise(deletePromise, {
+				loading: 'Loading...',
+				success: (res) => `Diagram has been deleted successfully!`,
+				error: (err) => `Error: ${err.message}`,
+			});
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Error deleting diagram');
+			console.error('Error deleting diagram:', error);
+		} finally {
+			setActionLoading(false);
+		}
 	}
 
 	useEffect(() => {
@@ -452,7 +488,7 @@ const Boards = () => {
 													<TagsDropdown tags={tags} setPickedTag={setPickedTag} pickedTag={pickedTag} />
 													<textarea id='description' value={drawForm.description} onChange={handleDrawForm} className='input h-32 resize-none' placeholder='Diagram description *' required></textarea>
 													<IconSelector icon={drawForm.icon} onSelect={handleIconSelect} />
-													<button type='button' onClick={() => createDraw(false)} className='bg-blue-600 button w-full'>{loading ? <Spinner /> : "Create"}</button>
+													<button type='button' onClick={() => createDraw(false)} className='bg-blue-600 button w-full'>{actionLoading ? <Spinner /> : "Create"}</button>
 												</div>
 											</DialogContent>
 										</Dialog>
@@ -466,7 +502,7 @@ const Boards = () => {
 												<div className='flex flex-col gap-3'>
 													<input value={tagForm.title} id='title' onChange={handleTagForm} type="text" className='input' placeholder='Tag name' />
 													<textarea id='description' value={tagForm.description} onChange={handleTagForm} className='input h-32 resize-none' placeholder='Tag description' ></textarea>
-													<button type='button' onClick={() => createTag()} className='bg-blue-600 button w-full'>{loading ? <Spinner /> : "Create"}</button>
+													<button type='button' onClick={() => createTag()} className='bg-blue-600 button w-full'>{actionLoading ? <Spinner /> : "Create"}</button>
 												</div>
 											</DialogContent>
 										</Dialog>
@@ -502,6 +538,11 @@ const Boards = () => {
 							</div>
 							<div className='mt-5 flex-1 w-full grid grid-cols-3 gap-x-5 h-full overflow-auto gap-y-5'>
 								{
+								loading || diagramsLoading || tagsLoading ? (
+									<div className="col-span-3 flex justify-center items-center">
+										<Spinner />
+									</div>
+								) : (
 									filteredDiagrams.length === 0 ? <h2 className='text-xl text-white'>Nothing to show...</h2> :
 										filteredDiagrams.map((diagram: Diagram) => {
 											return (
@@ -531,7 +572,7 @@ const Boards = () => {
 																				<TagsDropdown tags={tags} setPickedTag={setPickedTag} pickedTag={pickedTag} />
 																				<textarea id='description' value={drawForm.description} onChange={handleDrawForm} className='input h-32 resize-none' placeholder='Diagram description *' required></textarea>
 																				<IconSelector icon={drawForm.icon} onSelect={handleIconSelect} />
-																				<button type='button' onClick={() => updateDraw(diagram)} className='bg-blue-600 button w-full'>{loading ? <Spinner /> : "Rename"}</button>
+																				<button type='button' onClick={() => updateDraw(diagram)} className='bg-blue-600 button w-full'>{actionLoading ? <Spinner /> : "Rename"}</button>
 																			</div>
 																		</DialogContent>
 																	</Dialog>
@@ -573,7 +614,8 @@ const Boards = () => {
 												</div>
 											)
 										})
-								}
+									)
+									}
 							</div>
 						</div>
 					</div>

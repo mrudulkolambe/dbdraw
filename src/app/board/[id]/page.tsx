@@ -870,7 +870,7 @@ export default function App() {
             id: field.id
           };
 
-          if (field.type === "ref") {
+          if (field.type === "ref" && field.ref) {
             const edge = edges.find(
               (edge: any) => edge.target === node.id && edge.targetHandle === `target-${fieldIndex}`
             );
@@ -968,17 +968,16 @@ ${fields}
 
           if (field.type === "ref" && field.ref) {
             fieldOptions.push(
-              `type: ${language === 'typescript' ? 'Schema.Types.ObjectId' : 'mongoose.Schema.Types.ObjectId'}`,
+              `type: ${field.list ? '[' : ''}${language === 'typescript' ? 'Schema.Types.ObjectId' : 'mongoose.Schema.Types.ObjectId'}${field.list ? ']' : ''}`,
               `ref: "${field.ref}"`,
               field.required ? `required: true` : ""
             );
           } else {
-            fieldOptions.push(`type: ${mapFieldTypeToMongoose(field.type)}`);
+            fieldOptions.push(`type: ${field.list ? '[' : ''}${mapFieldTypeToMongoose(field.type)}${field.list ? ']' : ''}`);
             if (field.required) fieldOptions.push(`required: true`);
             if (field.unique) fieldOptions.push(`unique: true`);
             if (field.default !== undefined)
               fieldOptions.push(`default: ${JSON.stringify(field.default)}`);
-            if (field.list) fieldOptions.push(`array: true`);
           }
 
           return `  ${field.name}: { ${fieldOptions.filter(Boolean).join(", ")} }`;
