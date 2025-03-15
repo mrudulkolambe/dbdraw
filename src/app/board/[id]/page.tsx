@@ -1452,7 +1452,6 @@ export const ${pascalCaseCollectionName}${modelType ? `: ${modelType}` : ''} = m
                     snapGrid={[50, 50]}
                     snapToGrid={snapToGrid}
                     nodeOrigin={[0.5, 0]}
-                    proOptions={{ hideAttribution: true }}
                   >
                     <Background
                       style={{
