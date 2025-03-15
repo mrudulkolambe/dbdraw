@@ -158,7 +158,6 @@ const DiagramView = () => {
 					fitView
 					minZoom={0.1}
 					maxZoom={1.5}
-					proOptions={{ hideAttribution: true,  }}
 				>
 					<Background
 						style={{ backgroundColor: "#111315" }}
