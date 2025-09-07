@@ -1,9 +1,23 @@
+"use client"
+
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import Image from "next/image";
+import Link from "next/link";
+import { useEffect } from "react";
 
 export default function Home() {
+  const user = useUser();
+
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
+        {user.isSignedIn ?
+          <UserButton /> :
+          <SignInButton mode="modal">
+            <button className="bg-blue-600 px-4 sm:px-6 py-2 sm:py-3 text-white text-sm rounded-md">Sign In</button>
+          </SignInButton>
+        }
+        <Link href="/dashboard">Dashboard</Link>
         <Image
           className="dark:invert"
           src="/next.svg"
